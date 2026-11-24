@@ -3,7 +3,7 @@
 **Mata Kuliah:** Analisis Big Data  
 **Target Check-in:** Pertemuan 10 (Diumumkan Pertemuan 8, repositori dibagikan Pertemuan 9)  
 **Nama Tim:** [Tuliskan Nama Tim]  
-**Topik / Judul Produk Data:** [Dashboard Analisis Sentimen]  
+**Topik / Judul Produk Data:** Dashboard Analisis Sentimen Tweet  
 
 ---
 
@@ -16,7 +16,10 @@
 *Yang menjadi target pengguna produk data ini adalah Analis media sosial ataupun pemasaran dan peneliti yang berfokus pada bidang NLP yang ingin menilai kualitas label hasil distant supervision dan perilaku model sederhana pada data berskala besar.*
 
 ### 1.3 Nilai Tambah & Wawasan Utama
-*Setelah berinteraksi, pengguna dapat: 1. Melihat tren volume tweet dan proporsi sentimen per hari/jam, serta hari dengan volume tak biasa; 2. Melihat kata ataupun frasa yang paling membedakan antara tweet positif dan negatif.; 3. Melihat performa model pada set uji manual dan kapan prediksi tidak bisa dipercaya.*
+*Setelah berinteraksi, pengguna dapat: 
+1. Melihat tren volume tweet dan proporsi sentimen per hari/jam, serta hari dengan volume tak biasa.
+2. Melihat kata ataupun frasa yang paling membedakan antara tweet positif dan negatif. 
+3. Melihat performa model pada set uji manual dan kapan prediksi tidak bisa dipercaya.*
 
 ---
 
@@ -39,12 +42,17 @@ Gambarkan alur bagaimana data mengalir dari disk mentah hingga ke antarmuka peng
 
 ```mermaid
 flowchart TD
-    A[Dataset Mentah >1M Baris Parquet/CSV] --> B[DuckDB In-Process Analytics Engine]
-    B -->|Filter & Agregasi Cepat| C[Polars LazyFrame Transformation]
-    C -->|Hasil Ringkas Terstruktur| D[Streamlit Caching Layer @st.cache_data]
-    D --> E[Interactive UI Controls: Sidebar Widgets & Date Pickers]
-    E --> F[Plotly Express / Altair Charts]
-    F --> G[HuggingFace Spaces Live Web App]
+    A[Sumber: zip Stanford / mirror Parquet HF] -->|src/ingestion/download.py| B[data/raw/ CSV 1,6 juta baris]
+    B -->|src/cleaning/clean.py · DuckDB out-of-core| C[data/interim/tweets_clean.parquet]
+    C -->|reports/cleaning_report.json| R[Bukti jumlah baris & kualitas data]
+    C -->|src/features/aggregate.py · DuckDB| D[data/processed/agg_*.parquet<br/>harian, per jam, panjang teks, frekuensi kata]
+    C -->|src/modeling · scikit-learn| M[Model (contoh TF-IDF + LogReg)<br/>+ metrik & prediksi data uji]
+    D --> P[Polars: moving average, pivot proporsi]
+    M --> P
+    P --> S[Streamlit · @st.cache_data]
+    S --> U[Interactive UI Controls: Sidebar Widgets & Date Pickers]
+    U --> V[Plotly Charts & Tabel]
+    V --> H[HuggingFace Spaces Live Web App]
 ```
 
 ---
@@ -52,15 +60,24 @@ flowchart TD
 ## 4. Rencana Pemrosesan Data & Strategi Caching
 
 ### 4.1 Peran DuckDB (SQL Engine)
-- Bagaimana data dibaca? (Contoh: pembacaan langsung direktori file Parquet berpartisi temporal).
-- Operasi analitik berat apa yang didelegasikan ke DuckDB? (Contoh: `SUMMARIZE`, window function running total, agregasi bulanan/wilayah).
+Bagaimana data dibaca? (Contoh: pembacaan langsung direktori file Parquet berpartisi temporal).
+Operasi analitik berat apa yang didelegasikan ke DuckDB? (Contoh: `SUMMARIZE`, window function running total, agregasi bulanan/wilayah).
+- Menggunakan fungsi `read_csv` untuk membaca dataset mentah (`latin-1`, tanpa *header*, dengan skema kolom eksplisit) secara langsung dari disk tanpa memuat keseluruhan file ke dalam RAM, serta menyediakan *fallback* ke *mirror* Parquet dari Hugging Face apabila berkas CSV tidak tersedia.
+- Agregasi & Ekstraksi Fitur NLP (`aggregate.py`): Menghitung agregasi volume tweet berdasarkan dimensi waktu (`hari × label` dan `jam × label`), distribusi panjang karakter teks, serta ekstraksi frekuensi kata teratas (*top-N*) per kelas sentimen menggunakan tokenisasi `regexp_extract_all`, pembersihan *URL/mention/stopwords*, dan penyaringan `QUALIFY row_number()`.
 
 ### 4.2 Peran Polars (Transformasi Data)
-- Operasi apa yang dilakukan di Polars? (Contoh: pembuatan fitur lag, moving average, dekomposisi temporal, atau pivoting).
+Operasi apa yang dilakukan di Polars? (Contoh: pembuatan fitur lag, moving average, dekomposisi temporal, atau pivoting).
+- Moving average 7 hari untuk untuk melihat arah pergerakan tren volume dan proporsi sentimen. 
+- Pivot dari format panjang (day, label, n) ke format lebar untuk menghitung rasio/proporsi positif dan negatif per hari serta per jam.
+- Deteksi anomali volume harian menggunakan metode IQR (Interquartile Range) untuk menandai hari-hari dengan lonjakan aktivitas yang tidak biasa.
+
 
 ### 4.3 Strategi Optimasi Memori & Caching Streamlit
-- Bagaimana mencegah aplikasi reload lambat saat pengguna mengubah filter? (Gunakan `@st.cache_data` pada fungsi kueri berat).
-- Batas memori cloud HuggingFace Spaces gratis adalah 16GB RAM; pastikan tidak menyimpan dataset mentah 1 juta baris langsung di memori Streamlit session state!
+Bagaimana mencegah aplikasi reload lambat saat pengguna mengubah filter? (Gunakan `@st.cache_data` pada fungsi kueri berat).
+Batas memori cloud HuggingFace Spaces gratis adalah 16GB RAM; pastikan tidak menyimpan dataset mentah 1 juta baris langsung di memori Streamlit session state!
+- Streamlit hanya membaca data/processed/*.parquet dan file hasil modeling yang berukuran kecil.
+- Fungsi pemuatan dan transformasi dibungkus @st.cache_data, sehingga perubahan filter tidak memicu pembacaan ulang file.
+- Pencarian kata kunci pada teks mentah dilakukan lewat kueri DuckDB ke Parquet dengan LIMIT, sehingga hanya sebagian kecil sampel baris yang ditarik ke memori aplikasi, bukan dengan memuat seluruh data ke memori.
 
 ---
 
