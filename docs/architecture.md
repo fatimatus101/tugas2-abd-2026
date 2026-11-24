@@ -3,20 +3,20 @@
 **Mata Kuliah:** Analisis Big Data  
 **Target Check-in:** Pertemuan 10 (Diumumkan Pertemuan 8, repositori dibagikan Pertemuan 9)  
 **Nama Tim:** [Tuliskan Nama Tim]  
-**Topik / Judul Produk Data:** [Contoh: Dashboard Pemantauan Cuaca Ekstrem dan Kualitas Udara Indonesia]  
+**Topik / Judul Produk Data:** [Dashboard Analisis Sentimen]  
 
 ---
 
 ## 1. Problem Statement & Sasaran Pengguna (The Pitch)
 
 ### 1.1 Latar Belakang Masalah
-*Jelaskan permasalahan nyata atau kebutuhan analisis yang ingin diselesaikan melalui dashboard analitik ini. Mengapa data besar ini perlu disajikan secara interaktif?*
+*Media sosial menghasilkan jutaan opini tentang merek, produk, dan topik dimana jika membacanya satu per satu sangat tidak memungkinkan. Maka dari itu, dibutuhkan cara meringkas berapa banyak opini yang muncul, kapan, dan bernada apa. Untuk mempermudah dalam menganalisis suatu opini, maka dibuat dashboard interaktif. Dashboard tersebut diperlukan karena pertanyaan analisis yang berubah-ubah.*
 
 ### 1.2 Target Pengguna (Target Audience)
-*Siapa pengguna utama produk data ini? (Misal: analis meteorologi BMKG, pemangku kebijakan bencana daerah, pelaku logistik maritim, atau masyarakat umum).*
+*Yang menjadi target pengguna produk data ini adalah Analis media sosial ataupun pemasaran dan peneliti yang berfokus pada bidang NLP yang ingin menilai kualitas label hasil distant supervision dan perilaku model sederhana pada data berskala besar.*
 
 ### 1.3 Nilai Tambah & Wawasan Utama
-*Wawasan atau keputusan apa yang bisa diambil oleh pengguna setelah berinteraksi dengan dashboard ini?*
+*Setelah berinteraksi, pengguna dapat: 1. Melihat tren volume tweet dan proporsi sentimen per hari/jam, serta hari dengan volume tak biasa; 2. Melihat kata ataupun frasa yang paling membedakan antara tweet positif dan negatif.; 3. Melihat performa model pada set uji manual dan kapan prediksi tidak bisa dipercaya.*
 
 ---
 
@@ -24,12 +24,12 @@
 
 | Parameter | Keterangan |
 |-----------|------------|
-| **Nama Dataset** | [Nama Dataset, misal: BMKG Open Data / Satu Data Indonesia / E-Commerce] |
-| **Sumber Resmi** | [Tautan URL portal data] |
-| **Format Awal** | [CSV / Parquet / JSON API] |
-| **Ukuran Data** | [Minimal >500 MB atau >1 Juta Baris] |
-| **Dimensi Waktu / Temporal** | [Rentang tanggal data, misal: 2024–2026, frekuensi per menit/jam] |
-| **Fitur / Kolom Kunci** | [Sebutkan kolom-kolom analitik penting] |
+| **Nama Dataset** | [Sentiment140 (Go, Bhayani, Huang; Stanford, 2009)] |
+| **Sumber Resmi** | [Situs: http://help.sentiment140.com/home · File: https://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip · Mirror: https://huggingface.co/datasets/stanfordnlp/sentiment140] |
+| **Format Awal** | [CSV] |
+| **Ukuran Data** | [1.600.000 baris] |
+| **Dimensi Waktu / Temporal** | [Bulan April - Juni tahun 2009] |
+| **Fitur / Kolom Kunci** | [text (isi tweet), label (dari polarity: 0 negatif, 4 positif → 0/1), posted_at (dari date), tweet_id, username] |
 
 ---
 

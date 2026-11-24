@@ -8,11 +8,11 @@ Folder ini digunakan untuk menempatkan dataset yang dipakai dalam dashboard anal
 
 ## Informasi Dataset Kelompok
 
-- **Nama Dataset:** [Isi nama dataset]
-- **Sumber Data:** [Tautan sumber resmi / URL portal]
-- **Ukuran File Mentah:** [Ukuran dalam MB / GB]
-- **Jumlah Baris:** [Jumlah baris data, minimal >500 MB atau >1 Juta Baris]
-- **Format File:** [CSV / Parquet]
+- **Nama Dataset:** [Sentiment140 (Go, Bhayani & Huang, Stanford, 2009)]
+- **Sumber Data:** [https://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip / https://huggingface.co/datasets/stanfordnlp/sentiment140]
+- **Ukuran File Mentah:** [±226 MB]
+- **Jumlah Baris:** [1.600.000 baris]
+- **Format File:** [CSV]
 
 ---
 
@@ -21,8 +21,16 @@ Folder ini digunakan untuk menempatkan dataset yang dipakai dalam dashboard anal
 Tuliskan perintah atau script untuk mengunduh dataset secara otomatis:
 
 ```bash
-# Contoh pengunduhan menggunakan curl / wget:
-# curl -L -o data/dataset_mentah.parquet https://url-sumber-data.com/data.parquet
+
+python -m src.ingestion.download
+python -m src.cleaning.clean        # -> data/interim/tweets_clean.parquet + reports/cleaning_report.json
+python -m src.features.aggregate    # -> data/processed/agg_*.parquet
+
+atau 
+
+curl -L -o data/raw/trainingandtestdata.zip https://cs.stanford.edu/people/alecmgo/trainingandtestdata.zip
+python -m zipfile -e data/raw/trainingandtestdata.zip data/raw/
+
 ```
 
 ---
@@ -31,7 +39,10 @@ Tuliskan perintah atau script untuk mengunduh dataset secara otomatis:
 
 | Nama Kolom | Tipe Data | Deskripsi Makna Bisnis |
 |------------|:---------:|------------------------|
-| `timestamp` | Datetime | Waktu pencatatan observasi |
-| `wilayah` | Utf8 | Nama provinsi / kota / stasiun |
-| `kategori` | Utf8 | Pengelompokan jenis data |
-| `nilai_metrik` | Float64 | Angka pengukuran utama |
+| `polarity` | Int32 | Label sentimen: 0 = negatif, 2 = netral, 4 = positif |
+| `id` | Int64 | ID unik tweet |
+| `date` | Utf8 | Waktu tweet |
+| `query` | Utf8 | Kata kunci pencarian saat pengumpulan data |
+| `user` | Utf8 | 	Nama pengguna penulis tweet |
+| `text` | Utf8 | isi tweet |
+
