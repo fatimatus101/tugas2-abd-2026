@@ -16,10 +16,10 @@
 *Yang menjadi target pengguna produk data ini adalah Analis media sosial ataupun pemasaran dan peneliti yang berfokus pada bidang NLP yang ingin menilai kualitas label hasil distant supervision dan perilaku model sederhana pada data berskala besar.*
 
 ### 1.3 Nilai Tambah & Wawasan Utama
-*Setelah berinteraksi, pengguna dapat: 
+Setelah berinteraksi, pengguna dapat: 
 1. Melihat tren volume tweet dan proporsi sentimen per hari/jam, serta hari dengan volume tak biasa.
 2. Melihat kata ataupun frasa yang paling membedakan antara tweet positif dan negatif. 
-3. Melihat performa model pada set uji manual dan kapan prediksi tidak bisa dipercaya.*
+3. Melihat performa model pada set uji manual dan kapan prediksi tidak bisa dipercaya.
 
 ---
 
@@ -42,17 +42,17 @@ Gambarkan alur bagaimana data mengalir dari disk mentah hingga ke antarmuka peng
 
 ```mermaid
 flowchart TD
-    A[Sumber: zip Stanford / mirror Parquet HF] -->|src/ingestion/download.py| B[data/raw/ CSV 1,6 juta baris]
-    B -->|src/cleaning/clean.py · DuckDB out-of-core| C[data/interim/tweets_clean.parquet]
-    C -->|reports/cleaning_report.json| R[Bukti jumlah baris & kualitas data]
-    C -->|src/features/aggregate.py · DuckDB| D[data/processed/agg_*.parquet<br/>harian, per jam, panjang teks, frekuensi kata]
-    C -->|src/modeling · scikit-learn| M[Model (contoh TF-IDF + LogReg)<br/>+ metrik & prediksi data uji]
-    D --> P[Polars: moving average, pivot proporsi]
+    A["Sumber: zip Stanford / mirror Parquet HF"] -->|"src/ingestion/download.py"| B["data/raw/ CSV 1,6 juta baris"]
+    B -->|"src/cleaning/clean.py · DuckDB out-of-core"| C["data/interim/tweets_clean.parquet"]
+    C -->|"reports/cleaning_report.json"| R["Bukti jumlah baris & kualitas data"]
+    C -->|"src/features/aggregate.py · DuckDB"| D["data/processed/agg_*.parquet<br/>harian, per jam, panjang teks, frekuensi kata"]
+    C -->|"src/modeling · scikit-learn"| M["Model (contoh TF-IDF + LogReg)<br/>+ metrik & prediksi data uji"]
+    D --> P["Polars: moving average, pivot proporsi"]
     M --> P
-    P --> S[Streamlit · @st.cache_data]
-    S --> U[Interactive UI Controls: Sidebar Widgets & Date Pickers]
-    U --> V[Plotly Charts & Tabel]
-    V --> H[HuggingFace Spaces Live Web App]
+    P --> S["Streamlit · @st.cache_data"]
+    S --> U["Interactive UI Controls: Sidebar Widgets & Date Pickers"]
+    U --> V["Plotly Charts & Tabel"]
+    V --> H["HuggingFace Spaces Live Web App"]
 ```
 
 ---
